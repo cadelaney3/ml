@@ -140,5 +140,5 @@ plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
 
-#plt.show()
-plt.savefig("graph.png")
+plt.show()
+#plt.savefig("graph.png")
