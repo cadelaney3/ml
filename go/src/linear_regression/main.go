@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
+	"matrix"
 	"os"
 	"strconv"
 	"strings"
@@ -13,52 +13,6 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
-}
-
-func hypothesis(x float32, y float32) {
-
-}
-
-func matAddFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error) {
-	if len(mat1) != len(mat2) && len(mat1[0]) != len(mat2[0]) {
-		return nil, errors.New("invalid matrix dimensions for matrix addition")
-	}
-
-	result := make([][]float32, len(mat1))
-	for i := 0; i < len(mat1); i++ {
-		result[i] = make([]float32, len(mat1[0]))
-		for j := 0; j < len(mat1); j++ {
-			result[i][j] = mat1[i][j] + mat2[i][j]
-		}
-	}
-	return result, nil
-}
-
-func matMultFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error) {
-	if len(mat1[0]) != len(mat2) {
-		return nil, errors.New("invalid matrix dimensions for matrix multiplication")
-	}
-	//fmt.Printf("len mat1: %d; len mat2: %d\n", len(mat1), len(mat2))
-	result := make([][]float32, len(mat1))
-	for i := 0; i < len(mat1); i++ {
-		result[i] = make([]float32, len(mat2[0]))
-		for j := 0; j < len(mat1); j++ {
-			for k := 0; k < len(mat1); k++ {
-				result[i][j] += mat1[i][k] * mat2[k][j]
-			}
-		}
-	}
-	return result, nil
-}
-
-func transpose(mat [][]float32) [][]float32 {
-	result := make([][]float32, len(mat[0]))
-	for i := 0; i < len(mat); i++ {
-		for j := 0; j < len(mat[0]); j++ {
-			result[j] = append(result[j], mat[i][j])
-		}
-	}
-	return result
 }
 
 func main() {
@@ -104,7 +58,7 @@ func main() {
 		xTrain[i] = []float32{x[1] + x[2] + x[3] + x[4] + x[5] + x[6]}
 		yTrain[i] = []float32{x[12]}
 	}
-	//fmt.Println(xTrain)
+	//fmt.Println(yTrain)
 
 	//xTest := df[trainLen:]
 	//fmt.Printf("len of x_train: %d\n", len(xTrain))
@@ -128,12 +82,32 @@ func main() {
 		// var meanSqErr float32
 		// var meanSqTemp float32
 		//y = a0 + a1*xTrain
-		a2 := transpose(a1)
-		x, err := matMultFloat32(a2, xTrain)
+		//a2 := transpose(a1)
+
+		x, err := matrix.MatMultFloat32(transpose(a1), xTrain)
 		check(err)
-		fmt.Println(x)
+		//fmt.Println(x)
+
+		y, err := matrix.MatAddFloat32(transpose(a0), x)
+		check(err)
+		//fmt.Println(y)
+
+		//fmt.Printf("len of y: %d\n", len(transpose(y)))
+		//fmt.Printf("len of yTrain: %d\n", len(yTrain))
+
+		e, err := matrix.MatSubtractFloat32(transpose(y), yTrain)
+		check(err)
+		//fmt.Println(e)
+
+		e2, err := matrix.MatMultFloat32(e, e)
+		check(err)
+
+		meanSqErr := matrix.MatSumFloat32(transpose(e2))
+		fmt.Println(meanSqErr)
+
+		meanSqErr = meanSqErr / float32(n)
+		fmt.Println(meanSqErr)
 		/*
-			e = y - yTrain
 			for _, val := range e {
 				meanSqTemp += val
 			}
@@ -152,4 +126,5 @@ func main() {
 			}
 		*/
 	}
+
 }
