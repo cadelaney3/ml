@@ -1,6 +1,9 @@
-package matrix
+package mlutils
 
-import "errors"
+import (
+	"errors"
+	"math"
+)
 
 func MatAddFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error) {
 	if len(mat1) != len(mat2) && len(mat1[0]) != len(mat2[0]) {
@@ -10,7 +13,7 @@ func MatAddFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error) {
 	result := make([][]float32, len(mat1))
 	for i := 0; i < len(mat1); i++ {
 		result[i] = make([]float32, len(mat1[0]))
-		for j := 0; j < len(mat1); j++ {
+		for j := 0; j < len(mat1[i]); j++ {
 			result[i][j] = mat1[i][j] + mat2[i][j]
 		}
 	}
@@ -25,18 +28,18 @@ func MatSubtractFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error)
 	result := make([][]float32, len(mat1))
 	for i := 0; i < len(mat1); i++ {
 		result[i] = make([]float32, len(mat1[0]))
-		for j := 0; j < len(mat1); j++ {
+		for j := 0; j < len(mat1[i]); j++ {
 			result[i][j] = mat1[i][j] - mat2[i][j]
 		}
 	}
 	return result, nil
 }
 
-func MatSumFloat32(slice [][]float32) float32 {
+func MatSumFloat32(mat [][]float32) float32 {
 	sum := float32(0.0)
-	for i := 0; i < len(slice); i++ {
-		for j := 0; j < len(slice[i]); j++ {
-			sum += slice[i][j]
+	for i := 0; i < len(mat); i++ {
+		for j := 0; j < len(mat[i]); j++ {
+			sum += mat[i][j]
 		}
 	}
 	return sum
@@ -50,13 +53,61 @@ func MatMultFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error) {
 	result := make([][]float32, len(mat1))
 	for i := 0; i < len(mat1); i++ {
 		result[i] = make([]float32, len(mat2[0]))
-		for j := 0; j < len(mat1); j++ {
-			for k := 0; k < len(mat1); k++ {
+		for j := 0; j < len(mat2[0]); j++ {
+			for k := 0; k < len(mat2); k++ {
 				result[i][j] += mat1[i][k] * mat2[k][j]
 			}
 		}
 	}
 	return result, nil
+}
+
+func ScalarMatMultFloat32(scalar float32, mat [][]float32) [][]float32 {
+	result := make([][]float32, len(mat))
+
+	for i := 0; i < len(mat); i++ {
+		result[i] = make([]float32, len(mat[i]))
+		for j := 0; j < len(mat[i]); j++ {
+			result[i][j] = scalar * mat[i][j]
+		}
+	}
+	return result
+}
+
+func ScalarMatDivFloat32(scalar float32, mat [][]float32) [][]float32 {
+	result := make([][]float32, len(mat))
+
+	for i := 0; i < len(mat); i++ {
+		result[i] = make([]float32, len(mat[i]))
+		for j := 0; j < len(mat[i]); j++ {
+			result[i][j] = mat[i][j] / scalar
+		}
+	}
+	return result
+}
+
+func MatPlusScalarFloat32(mat [][]float32, scalar float32) [][]float32 {
+	result := make([][]float32, len(mat))
+
+	for i := 0; i < len(mat); i++ {
+		result[i] = make([]float32, len(mat[i]))
+		for j := 0; j < len(mat[i]); j++ {
+			result[i][j] = mat[i][j] + scalar
+		}
+	}
+	return result
+}
+
+func MatMinusScalarFloat32(mat [][]float32, scalar float32) [][]float32 {
+	result := make([][]float32, len(mat))
+
+	for i := 0; i < len(mat); i++ {
+		result[i] = make([]float32, len(mat[i]))
+		for j := 0; j < len(mat[i]); j++ {
+			result[i][j] = mat[i][j] - scalar
+		}
+	}
+	return result
 }
 
 func Transpose(mat [][]float32) [][]float32 {
@@ -67,4 +118,42 @@ func Transpose(mat [][]float32) [][]float32 {
 		}
 	}
 	return result
+}
+
+func MeanFloat32(x []float32) float32 {
+	sum := SumFloat32(x)
+	return sum / float32(len(x))
+}
+
+func StandardDevFloat32(x []float32) float32 {
+	n := float32(len(x))
+	xBar := MeanFloat32(x)
+	numerator := make([]float32, len(x))
+
+	for i, val := range x {
+		numerator[i] = (val - xBar) * (val - xBar)
+	}
+	return float32(math.Sqrt(float64(SumFloat32(numerator) / n)))
+}
+
+func SumFloat32(x []float32) float32 {
+	sum := float32(0)
+	for _, val := range x {
+		sum += val
+	}
+	return sum
+}
+
+func R2(x []float32, y []float32) float32 {
+	n := float32(len(x))
+	meanX := MeanFloat32(x)
+	meanY := MeanFloat32(y)
+	deltaX := StandardDevFloat32(x)
+	deltaY := StandardDevFloat32(y)
+	summation := make([]float32, len(x))
+	for i, _ := range x {
+		summation[i] = (x[i] - meanX) * (y[i] - meanY)
+	}
+	r := (float32(1) / n) * SumFloat32(summation) / (deltaX * deltaY)
+	return r * r
 }
