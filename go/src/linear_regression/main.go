@@ -97,8 +97,8 @@ func processCSV(path string) [][]float32 {
 
 func main() {
 
-	dfTrain := processCSV("../data/random_linear_train.csv")
-	dfTest := processCSV("../data/random_linear_test.csv")
+	dfTrain := processCSV("../../../data/random_linear_train.csv")
+	dfTest := processCSV("../../../data/random_linear_test.csv")
 
 	xTrain := make([][]float32, len(dfTrain))
 	xTest := make([][]float32, len(dfTest))
