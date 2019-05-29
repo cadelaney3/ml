@@ -1,5 +1,12 @@
 import pandas as pd 
-import numpy as np 
+import numpy as np
+from sklearn.metrics import r2_score 
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression 
+from sklearn import preprocessing
+from statistics import mean
+import matplotlib.pyplot as plt
+
 
 df_train = pd.read_csv('../../data/random_linear_train.csv')
 df_test = pd.read_csv('../../data/random_linear_test.csv')
@@ -9,31 +16,49 @@ y_train = df_train['y']
 x_test = df_test['x']
 y_test = df_test['y']
 
-x_train = np.array(x_train)
-y_train = np.array(y_train)
-x_test = np.array(x_test)
-y_test = np.array(y_test)
+def best_fit_slope_and_intercept(xs,ys):
+    print("Mean: ", xs*ys)
 
-x_train = x_train.reshape(-1,1)
-x_test = x_test.reshape(-1,1)
+    m = (((mean(xs)*mean(ys)) - mean(xs*ys)) /
+         ((mean(xs)*mean(xs)) - mean(xs*xs)))
+    
+    b = mean(ys) - m*mean(xs)
 
-n = 700
-alpha = 0.0001
+    return m, b
 
-a_0 = np.zeros((n,1))
-a_1 = np.zeros((n,1))
 
-epochs = 0
-while(epochs < 1000):
-    y = a_0 + a_1 * x_train
-    error = y - y_train
-    mean_sq_er = np.sum(error**2)
-    mean_sq_er = mean_sq_er/n
-    a_0 = a_0 - alpha * 2 * np.sum(error)/n 
-    a_1 = a_1 - alpha * 2 * np.sum(error * x_train)/n
-    epochs += 1
-    if(epochs%10 == 0):
-        print(mean_sq_er)
+def coefficient_of_determination(ys_orig,ys_line):
+    y_mean_line = [mean(ys_orig) for y in ys_orig]
 
-y_prediction = a_0 + a_1 * x_test
-print('R2 Score:',r2_score(y_test,y_prediction))
+    squared_error_regr = sum((ys_line - ys_orig) * (ys_line - ys_orig))
+    squared_error_y_mean = sum((y_mean_line - ys_orig) * (y_mean_line - ys_orig))
+
+    r_squared = 1 - (squared_error_regr/squared_error_y_mean)
+
+    return r_squared
+
+print(x_train)
+print()
+print(y_train)
+
+m, b = best_fit_slope_and_intercept(x_train,y_train)
+print(m, b)
+regression_line = [(m*x)+b for x in x_test]
+r_squared = coefficient_of_determination(y_test,regression_line)
+print("r2 score from built model: ", r_squared)
+
+x_train = np.array(x_train).reshape(-1, 1)
+y_train = np.array(y_train).reshape(-1, 1)
+x_test = np.array(x_test).reshape(-1, 1)
+y_test = np.array(y_test).reshape(-1, 1)
+
+clf = LinearRegression(normalize=True)
+clf.fit(x_train,y_train)
+y_pred = clf.predict(x_test)
+print("r2 score from sklearn: ", r2_score(y_test,y_pred))
+
+plt.scatter(x_test, y_test, color='black')
+plt.plot(x_test, regression_line, color='blue', linewidth=3)
+plt.xticks(())
+plt.yticks(())
+plt.savefig("graph.png")

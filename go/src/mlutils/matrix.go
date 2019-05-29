@@ -20,10 +20,7 @@ func MatAddFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error) {
 	return result, nil
 }
 
-func MatSubtractFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error) {
-	if len(mat1) != len(mat2) && len(mat1[0]) != len(mat2[0]) {
-		return nil, errors.New("invalid matrix dimensions for matrix subtraction")
-	}
+func MatSubtractFloat32(mat1 [][]float32, mat2 [][]float32) [][]float32 {
 
 	result := make([][]float32, len(mat1))
 	for i := 0; i < len(mat1); i++ {
@@ -32,7 +29,7 @@ func MatSubtractFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error)
 			result[i][j] = mat1[i][j] - mat2[i][j]
 		}
 	}
-	return result, nil
+	return result
 }
 
 func MatSumFloat32(mat [][]float32) float32 {
@@ -45,11 +42,8 @@ func MatSumFloat32(mat [][]float32) float32 {
 	return sum
 }
 
-func MatMultFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error) {
-	if len(mat1[0]) != len(mat2) {
-		return nil, errors.New("invalid matrix dimensions for matrix multiplication")
-	}
-	//fmt.Printf("len mat1: %d; len mat2: %d\n", len(mat1), len(mat2))
+func MatMultFloat32(mat1 [][]float32, mat2 [][]float32) [][]float32 {
+
 	result := make([][]float32, len(mat1))
 	for i := 0; i < len(mat1); i++ {
 		result[i] = make([]float32, len(mat2[0]))
@@ -59,7 +53,15 @@ func MatMultFloat32(mat1 [][]float32, mat2 [][]float32) ([][]float32, error) {
 			}
 		}
 	}
-	return result, nil
+	return result
+}
+
+func Multiply(vec1, vec2 []float32) []float32 {
+	result := make([]float32, len(vec1))
+	for i, _ := range vec1 {
+		result[i] = vec1[i] * vec2[i]
+	}
+	return result
 }
 
 func ScalarMatMultFloat32(scalar float32, mat [][]float32) [][]float32 {

@@ -12,7 +12,25 @@ import (
 	"unicode"
 
 	"github.com/cadelaney3/ml/go/src/mlutils"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
 )
+
+type xy struct {
+	x []float64
+	y []float64
+}
+
+func (d xy) Len() int {
+	return len(d.x)
+}
+
+func (d xy) XY(i int) (x, y float64) {
+	x = d.x[i]
+	y = d.y[i]
+	return
+}
 
 func check(e error) {
 	if e != nil {
@@ -81,7 +99,6 @@ func processCSV(path string) [][]float32 {
 			log.Fatal(err)
 		}
 		temp := make([]float32, len(record))
-		fmt.Println(record)
 		for j, val := range record {
 			if isNumber(val) {
 				t, err := strconv.ParseFloat(val, 32)
@@ -93,6 +110,64 @@ func processCSV(path string) [][]float32 {
 		df = append(df, temp)
 	}
 	return df
+}
+
+func bestFitSlopeAndIntercept(x, y [][]float32) (float32, float32) {
+	var xT [][]float32
+	var yT [][]float32
+	if len(x) > 1 {
+		xT = mlutils.Transpose(x)
+	} else {
+		xT = x
+		x = mlutils.Transpose(x)
+	}
+	if len(y) > 1 {
+		yT = mlutils.Transpose(y)
+	} else {
+		yT = y
+		y = mlutils.Transpose(y)
+	}
+
+	xXy := mlutils.Multiply(xT[0], yT[0])
+	xXx := mlutils.Multiply(xT[0], xT[0])
+	meanX := mlutils.MeanFloat32(xT[0])
+	meanY := mlutils.MeanFloat32(yT[0])
+
+	m := ((meanX * meanY) - mlutils.MeanFloat32(xXy)) /
+		((meanX * meanX) - mlutils.MeanFloat32(xXx))
+
+	b := meanY - m*meanX
+	return m, b
+}
+
+func coefficientOfDetermination(yTest, yLine [][]float32) float32 {
+	var yTestT [][]float32
+	if len(yTest) > 1 {
+		yTestT = mlutils.Transpose(yTest)
+	} else {
+		yTestT = yTest
+		yTest = mlutils.Transpose(yTest)
+	}
+
+	yMeanLine := make([][]float32, 1)
+	yMeanLine[0] = make([]float32, len(yTestT[0]))
+	yTestMean := mlutils.MeanFloat32(yTestT[0])
+	for i := range yTest[0] {
+		yMeanLine[0][i] = yTestMean
+	}
+
+	temp := mlutils.MatSubtractFloat32(yLine, yTest)
+	tempSq := mlutils.MatMultFloat32(mlutils.Transpose(temp), temp)
+	tempSq = mlutils.Transpose(tempSq)
+	sqErrRegress := mlutils.SumFloat32(tempSq[0])
+
+	temp2 := mlutils.MatSubtractFloat32(yMeanLine, yTestT)
+	temp2Sq := mlutils.MatMultFloat32(mlutils.Transpose(temp2), temp2)
+	temp2Sq = mlutils.Transpose(temp2Sq)
+	sqErrYMean := mlutils.SumFloat32(temp2Sq[0])
+
+	rSquared := 1 - (sqErrRegress / sqErrYMean)
+	return rSquared
 }
 
 func main() {
@@ -114,64 +189,53 @@ func main() {
 		yTest[i] = []float32{x[1]}
 	}
 
-	n := len(xTrain)
-	alpha := float32(0.0001)
+	xTrain = xTrain[1:]
+	yTrain = yTrain[1:]
+	xTest = xTest[1:]
+	yTest = yTest[1:]
 
-	a0 := make([][]float32, n)
-	a1 := make([][]float32, n)
-	for index := range a0 {
-		a0[index] = []float32{0}
-		a1[index] = []float32{0}
+	m, b := bestFitSlopeAndIntercept(xTrain, yTrain)
+	regressionLine := make([][]float32, len(xTest))
+	for i, x := range xTest {
+		regressionLine[i] = make([]float32, 1)
+		regressionLine[i][0] = (m * x[0]) + b
+	}
+	rSquared := coefficientOfDetermination(yTest, regressionLine)
+	fmt.Printf("R2 score: %f\n", rSquared)
+
+	line := plotter.NewFunction(func(x float64) float64 { return float64(m)*x + float64(b) })
+
+	p, err := plot.New()
+	if err != nil {
+		log.Panic(err)
 	}
 
-	epochs := 0
-	for epochs < 1000 {
+	plotter.DefaultLineStyle.Width = vg.Points(1)
+	plotter.DefaultGlyphStyle.Radius = vg.Points(2)
 
-		x, err := mlutils.MatMultFloat32(a1, mlutils.Transpose(xTrain))
-		check(err)
+	x := make([]float64, len(xTrain))
+	y := make([]float64, len(yTrain))
+	xT := mlutils.Transpose(xTrain)[0]
+	yT := mlutils.Transpose(yTrain)[0]
 
-		y, err := mlutils.MatAddFloat32(a0, x)
-		check(err)
-
-		e, err := mlutils.MatSubtractFloat32(y, yTrain)
-		check(err)
-
-		e2, err := mlutils.MatMultFloat32(e, mlutils.Transpose(e))
-		check(err)
-
-		meanSqErr := mlutils.MatSumFloat32(mlutils.Transpose(e2))
-
-		meanSqErr = meanSqErr / float32(n)
-
-		a0 = mlutils.MatMinusScalarFloat32(a0, (alpha * float32(2) * mlutils.MatSumFloat32(e) / float32(n)))
-
-		eXxTrain, err := mlutils.MatMultFloat32(e, mlutils.Transpose(xTrain))
-		check(err)
-
-		a1 = mlutils.MatMinusScalarFloat32(a1, (alpha * float32(2) * mlutils.MatSumFloat32(eXxTrain) / float32(n)))
-
-		epochs++
-		if epochs%10 == 0 {
-			fmt.Println(meanSqErr)
-		}
-
+	for i := range xT {
+		x[i] = float64(xT[i])
+		y[i] = float64(yT[i])
 	}
 
-	a1XxTest, err := mlutils.MatMultFloat32(a1, mlutils.Transpose(xTest))
-	check(err)
-	fmt.Println(a1XxTest)
+	data := xy{
+		x: x,
+		y: y,
+	}
 
-	yPrediction, err := mlutils.MatAddFloat32(a0, a1XxTest)
-	check(err)
-	fmt.Println(a0)
-	fmt.Println(yPrediction)
+	scatter, err := plotter.NewScatter(data)
+	if err != nil {
+		log.Panic(err)
+	}
+	p.Add(scatter, line)
 
-	yTestTranspose := mlutils.Transpose(yTest)
-	//fmt.Println(yTestTranspose)
-
-	yPredictionTranspose := mlutils.Transpose(yPrediction)
-	//fmt.Println(yPredictionTranspose)
-
-	fmt.Printf("R2 Score: %f\n", mlutils.R2(yTestTranspose[0], yPredictionTranspose[0]))
-
+	err = p.Save(200, 200, "scatter.png")
+	if err != nil {
+		log.Panic(err)
+	}
 }
