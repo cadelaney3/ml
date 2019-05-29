@@ -8,3 +8,5 @@ go.sum
 go/go.mod
 python/virt
 python/linear_regression/graph.png
+.vscode
+vscode
