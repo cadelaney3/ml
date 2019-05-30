@@ -2,7 +2,7 @@ python/tensorflow/tutorials/text-classify/advanced/frequency_distrib.png
 python/tensorflow/tutorials/text-classify/advanced/sample_length_distrib.png
 python/tensorflow/tutorials/text-classify/advanced/IMDb_mlp_model.h5
 python/tensorflow/tutorials/text-classify/basic/graph.png
-go/src/data
+data
 go.mod 
 go.sum 
 go/go.mod
