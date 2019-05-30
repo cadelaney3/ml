@@ -1,14 +1,13 @@
 package main
 
 import (
-	"bufio"
 	"encoding/csv"
 	"fmt"
+	"image/color"
 	"io"
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"unicode"
 
 	"github.com/cadelaney3/ml/go/src/mlutils"
@@ -36,41 +35,6 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
-}
-
-func readCSV(path string) [][]float32 {
-	// load data
-	//f, err := os.Open("../data/wine.data")
-	f, err := os.Open(path)
-	check(err)
-	defer f.Close()
-
-	// create 2D slice dataframe
-	var df [][]float32
-	// scan thru each line of file
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		// is the each line as one string
-		s := scanner.Text()
-		// split s, but each value in array is still a string
-		splitS := strings.Split(s, ",")
-		fmt.Println(splitS)
-		var line []float32
-		// convert each value in split_s to float32
-		for _, x := range splitS {
-			temp, err := strconv.ParseFloat(x, 32)
-			check(err)
-			temp2 := float32(temp)
-			line = append(line, temp2)
-		}
-		df = append(df, line)
-	}
-	//fmt.Println(df)
-
-	if err := scanner.Err(); err != nil {
-		panic(err)
-	}
-	return df
 }
 
 func isNumber(s string) bool {
@@ -203,36 +167,51 @@ func main() {
 	rSquared := coefficientOfDetermination(yTest, regressionLine)
 	fmt.Printf("R2 score: %f\n", rSquared)
 
-	line := plotter.NewFunction(func(x float64) float64 { return float64(m)*x + float64(b) })
-
 	p, err := plot.New()
 	if err != nil {
 		log.Panic(err)
 	}
+	p.Title.Text = "Best Fit Line"
+	p.X.Label.Text = "X"
+	p.Y.Label.Text = "Y"
 
 	plotter.DefaultLineStyle.Width = vg.Points(1)
 	plotter.DefaultGlyphStyle.Radius = vg.Points(2)
 
-	x := make([]float64, len(xTrain))
-	y := make([]float64, len(yTrain))
-	xT := mlutils.Transpose(xTrain)[0]
-	yT := mlutils.Transpose(yTrain)[0]
+	x := make([]float64, len(xTest))
+	y := make([]float64, len(yTest))
+	xT := mlutils.Transpose(xTest)[0]
+	yT := mlutils.Transpose(yTest)[0]
+	regLine := make([]float64, len(regressionLine))
 
 	for i := range xT {
 		x[i] = float64(xT[i])
 		y[i] = float64(yT[i])
+	}
+	for i := range regressionLine {
+		regLine[i] = float64(regressionLine[i][0])
 	}
 
 	data := xy{
 		x: x,
 		y: y,
 	}
+	lineData := xy{
+		x: x,
+		y: regLine,
+	}
 
 	scatter, err := plotter.NewScatter(data)
 	if err != nil {
 		log.Panic(err)
 	}
-	p.Add(scatter, line)
+	l, err := plotter.NewLine(lineData)
+	if err != nil {
+		log.Panic(err)
+	}
+	l.LineStyle.Width = vg.Points(1)
+	l.LineStyle.Color = color.RGBA{R: 255, A: 255}
+	p.Add(scatter, l)
 
 	err = p.Save(200, 200, "scatter.png")
 	if err != nil {

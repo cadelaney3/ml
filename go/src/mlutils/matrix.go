@@ -159,3 +159,15 @@ func R2(x []float32, y []float32) float32 {
 	r := (float32(1) / n) * SumFloat32(summation) / (deltaX * deltaY)
 	return r * r
 }
+
+func MatMult1D(matA, matB []float64, mat1Rows, mat2Cols int) []float32 {
+	matC := make([]float64, mat1Rows*mat2Cols)
+	for (i=0; i<mat1Rows; i++) {
+		for (j=0; j<mat2Cols; j++) {
+			for (k=0; k<mat2Cols; k++) {
+				matC[i*n+j] += matA[i*n+k]*matB[k*n+j];
+			}
+		}
+	}
+	return result	
+}
