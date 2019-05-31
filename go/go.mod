@@ -1,6 +1,6 @@
 module github.com/cadelaney3/ml/go
 
-go 1.12
+go 1.11
 
 require (
 	golang.org/x/image v0.0.0-20190523035834-f03afa92d3ff // indirect
