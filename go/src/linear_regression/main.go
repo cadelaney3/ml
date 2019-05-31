@@ -80,16 +80,16 @@ func bestFitSlopeAndIntercept(x, y [][]float32) (float32, float32) {
 	var xT [][]float32
 	var yT [][]float32
 	if len(x) > 1 {
-		xT = mlutils.Transpose(x)
+		xT = mlutils.TransposeFloat32(x)
 	} else {
 		xT = x
-		x = mlutils.Transpose(x)
+		x = mlutils.TransposeFloat32(x)
 	}
 	if len(y) > 1 {
-		yT = mlutils.Transpose(y)
+		yT = mlutils.TransposeFloat32(y)
 	} else {
 		yT = y
-		y = mlutils.Transpose(y)
+		y = mlutils.TransposeFloat32(y)
 	}
 
 	xXy := mlutils.Multiply(xT[0], yT[0])
@@ -107,10 +107,10 @@ func bestFitSlopeAndIntercept(x, y [][]float32) (float32, float32) {
 func coefficientOfDetermination(yTest, yLine [][]float32) float32 {
 	var yTestT [][]float32
 	if len(yTest) > 1 {
-		yTestT = mlutils.Transpose(yTest)
+		yTestT = mlutils.TransposeFloat32(yTest)
 	} else {
 		yTestT = yTest
-		yTest = mlutils.Transpose(yTest)
+		yTest = mlutils.TransposeFloat32(yTest)
 	}
 
 	yMeanLine := make([][]float32, 1)
@@ -121,13 +121,13 @@ func coefficientOfDetermination(yTest, yLine [][]float32) float32 {
 	}
 
 	temp := mlutils.MatSubtractFloat32(yLine, yTest)
-	tempSq := mlutils.MatMultFloat32(mlutils.Transpose(temp), temp)
-	tempSq = mlutils.Transpose(tempSq)
+	tempSq := mlutils.MatMultFloat32(mlutils.TransposeFloat32(temp), temp)
+	tempSq = mlutils.TransposeFloat32(tempSq)
 	sqErrRegress := mlutils.SumFloat32(tempSq[0])
 
 	temp2 := mlutils.MatSubtractFloat32(yMeanLine, yTestT)
-	temp2Sq := mlutils.MatMultFloat32(mlutils.Transpose(temp2), temp2)
-	temp2Sq = mlutils.Transpose(temp2Sq)
+	temp2Sq := mlutils.MatMultFloat32(mlutils.TransposeFloat32(temp2), temp2)
+	temp2Sq = mlutils.TransposeFloat32(temp2Sq)
 	sqErrYMean := mlutils.SumFloat32(temp2Sq[0])
 
 	rSquared := 1 - (sqErrRegress / sqErrYMean)
@@ -180,8 +180,8 @@ func main() {
 
 	x := make([]float64, len(xTest))
 	y := make([]float64, len(yTest))
-	xT := mlutils.Transpose(xTest)[0]
-	yT := mlutils.Transpose(yTest)[0]
+	xT := mlutils.TransposeFloat32(xTest)[0]
+	yT := mlutils.TransposeFloat32(yTest)[0]
 	regLine := make([]float64, len(regressionLine))
 
 	for i := range xT {
