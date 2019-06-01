@@ -92,8 +92,8 @@ func bestFitSlopeAndIntercept(x, y [][]float32) (float32, float32) {
 		y = mlutils.TransposeFloat32(y)
 	}
 
-	xXy := mlutils.Multiply(xT[0], yT[0])
-	xXx := mlutils.Multiply(xT[0], xT[0])
+	xXy := mlutils.ElemMultiplyFloat32(xT[0], yT[0])
+	xXx := mlutils.ElemMultiplyFloat32(xT[0], xT[0])
 	meanX := mlutils.MeanFloat32(xT[0])
 	meanY := mlutils.MeanFloat32(yT[0])
 
