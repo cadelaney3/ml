@@ -1,9 +1,56 @@
 package mlutils
 
 import (
-	"math"
 	"log"
 )
+
+// OnesMatFloat32 creates a rows*cols matrix of all ones of type float32
+func OnesMatFloat32(rows, cols int) [][]float32 {
+	mat := make([][]float32, rows)
+	for i := 0; i < rows; i++ {
+		mat[i] = make([]float32, cols)
+		for j := 0; j < cols; j++ {
+			mat[i][j] = float32(1)
+		}
+	}
+	return mat
+}
+
+// OnesMat creates a rows*cols matrix of all ones of type float64
+func OnesMat(rows, cols int) [][]float64 {
+	mat := make([][]float64, rows)
+	for i := 0; i < rows; i++ {
+		mat[i] = make([]float64, cols)
+		for j := 0; j < cols; j++ {
+			mat[i][j] = float64(1)
+		}
+	}
+	return mat
+}
+
+// ZerosMatFloat32 creates a rows*cols matrix of all zeros of type float64
+func ZerosMatFloat32(rows, cols int) [][]float32 {
+	mat := make([][]float32, rows)
+	for i := 0; i < rows; i++ {
+		mat[i] = make([]float32, cols)
+		for j := 0; j < cols; j++ {
+			mat[i][j] = float32(0)
+		}
+	}
+	return mat
+}
+
+// ZerosMat creates a rows*cols matrix of all zeros of type float64
+func ZerosMat(rows, cols int) [][]float64 {
+	mat := make([][]float64, rows)
+	for i := 0; i < rows; i++ {
+		mat[i] = make([]float64, cols)
+		for j := 0; j < cols; j++ {
+			mat[i][j] = float64(0)
+		}
+	}
+	return mat
+}
 
 // MatAddFloat32 adds two matrices (2D slices) of type float32
 func MatAddFloat32(mat1, mat2 [][]float32) [][]float32 {
@@ -81,6 +128,18 @@ func MatSum(mat [][]float64) float64 {
 		}
 	}
 	return sum
+}
+
+// Dot is the dot product of two vectors (1D slices) of type float64
+func Dot(vec1, vec2 []float64) float64 {
+	if len(vec1) != len(vec2) {
+		log.Fatal("Invalid vector lengths. Vectors must have same length")
+	}
+	var product float64
+	for i := range vec1 {
+		product += vec1[i] * vec2[i]
+	}
+	return product
 }
 
 // MatMultFloat32 multiplies two matrices (2D slices) of type float32
@@ -243,30 +302,6 @@ func Mean(x []float64) float64 {
 	return sum / float64(len(x))
 }
 
-// StandardDevFloat32 returns the standard deviation of a slice of float32 values
-func StandardDevFloat32(x []float32) float32 {
-	n := float32(len(x))
-	xBar := MeanFloat32(x)
-	numerator := make([]float32, len(x))
-
-	for i, val := range x {
-		numerator[i] = (val - xBar) * (val - xBar)
-	}
-	return float32(math.Sqrt(float64(SumFloat32(numerator) / n)))
-}
-
-// StandardDev returns the standard deviation of a slice of float64 values
-func StandardDev(x []float64) float64 {
-	n := float64(len(x))
-	xBar := Mean(x)
-	numerator := make([]float64, len(x))
-
-	for i, val := range x {
-		numerator[i] = (val - xBar) * (val - xBar)
-	}
-	return math.Sqrt(float64(Sum(numerator) / n))
-}
-
 // SumFloat32 returns the sum of the values in a slice of float32 numbers
 func SumFloat32(x []float32) float32 {
 	sum := float32(0)
@@ -283,36 +318,6 @@ func Sum(x []float64) float64 {
 		sum += val
 	}
 	return sum
-}
-
-// R2Float32 takes in two slices and calculates the r2 score (coefficient of determination)
-func R2Float32(x, y []float32) float32 {
-	n := float32(len(x))
-	meanX := MeanFloat32(x)
-	meanY := MeanFloat32(y)
-	deltaX := StandardDevFloat32(x)
-	deltaY := StandardDevFloat32(y)
-	summation := make([]float32, len(x))
-	for i := range x {
-		summation[i] = (x[i] - meanX) * (y[i] - meanY)
-	}
-	r := (float32(1) / n) * SumFloat32(summation) / (deltaX * deltaY)
-	return r * r
-}
-
-// R2 takes in two slices and calculates the r2 score (coefficient of determination)
-func R2(x, y []float64) float64 {
-	n := float64(len(x))
-	meanX := Mean(x)
-	meanY := Mean(y)
-	deltaX := StandardDev(x)
-	deltaY := StandardDev(y)
-	summation := make([]float64, len(x))
-	for i := range x {
-		summation[i] = (x[i] - meanX) * (y[i] - meanY)
-	}
-	r := (float64(1) / n) * Sum(summation) / (deltaX * deltaY)
-	return r * r
 }
 
 // MatMult1D multiplies two matrices that are passed in as one-dimensional slices
