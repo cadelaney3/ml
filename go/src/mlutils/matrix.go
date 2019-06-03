@@ -2,7 +2,14 @@ package mlutils
 
 import (
 	"log"
+	"math"
+	"strconv"
 )
+
+// Shape outputs the shape of a matrix (2D slice)
+func Shape(mat [][]float64) string {
+	return "(" + strconv.Itoa(len(mat)) + ", " + strconv.Itoa(len(mat[0])) + ")"
+}
 
 // OnesMatFloat32 creates a rows*cols matrix of all ones of type float32
 func OnesMatFloat32(rows, cols int) [][]float32 {
@@ -188,6 +195,17 @@ func ElemMultiply(vec1, vec2 []float64) []float64 {
 	return result
 }
 
+func ElemMatMult(mat1, mat2 [][]float64) [][]float64 {
+	result := make([][]float64, len(mat1))
+	for i, xi := range mat1 {
+		result[i] = make([]float64, len(xi))
+		for j := range xi {
+			result[i][j] = mat1[i][j] * mat2[i][j]
+		}
+	}
+	return result
+}
+
 // ScalarMatMultFloat32 multiples each value in a matrix (2D slice) by the specified scalar
 func ScalarMatMultFloat32(scalar float32, mat [][]float32) [][]float32 {
 	result := make([][]float32, len(mat))
@@ -268,6 +286,34 @@ func MatMinusScalarFloat32(mat [][]float32, scalar float32) [][]float32 {
 	return result
 }
 
+func AddScalarToVec(scalar float64, vec []float64) []float64 {
+	result := make([]float64, len(vec))
+	for i, v := range vec {
+		result[i] = scalar + v
+	}
+	return result
+}
+
+func SubVecFromScalar(scalar float64, vec []float64) []float64 {
+	result := make([]float64, len(vec))
+	for i, v := range vec {
+		result[i] = scalar - v
+	}
+	return result
+}
+
+func SubMatFromScalar(scalar float64, mat [][]float64) [][]float64 {
+	result := make([][]float64, len(mat))
+
+	for i := 0; i < len(mat); i++ {
+		result[i] = make([]float64, len(mat[i]))
+		for j := 0; j < len(mat[i]); j++ {
+			result[i][j] = scalar - mat[i][j]
+		}
+	}
+	return result
+}
+
 // TransposeFloat32 transposes a matrix (2D slice)
 func TransposeFloat32(mat [][]float32) [][]float32 {
 	result := make([][]float32, len(mat[0]))
@@ -318,6 +364,28 @@ func Sum(x []float64) float64 {
 		sum += val
 	}
 	return sum
+}
+
+// Log takes in a slice and returns a slice where the
+// natural log is taken of each value
+func Log(x []float64) []float64 {
+	log := make([]float64, len(x))
+	for i, val := range x {
+		log[i] = math.Log(val)
+	}
+	return log
+}
+
+// Log2D takes the log of each value in a 2D slice
+func Log2D(x [][]float64) [][]float64 {
+	log := make([][]float64, len(x))
+	for i, xi := range x {
+		log[i] = make([]float64, len(xi))
+		for j, v := range xi {
+			log[i][j] = math.Log(v)
+		}
+	}
+	return log
 }
 
 // MatMult1D multiplies two matrices that are passed in as one-dimensional slices
